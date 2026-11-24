@@ -4,7 +4,7 @@ Read-only náhrada za `homeassistant-myskoda` nad **oficiálním MyŠkoda Public
 (https://public.api.connect.skoda-auto.cz/docs). Žádné heslo, žádná externí knihovna.
 
 ## Instalace
-1. Zkopíruj `custom_components/skoda_public_api` do `<config>/custom_components/`, restartuj HA.
+1. Zkopíruj `custom_components/skoda_ha` do `<config>/custom_components/`, restartuj HA.
 2. V aplikaci MyŠkoda vytvoř API klíč: https://go.skoda.eu/api-keys (vyber vozidlo).
 3. Nastavení → Zařízení a služby → Přidat integraci → „Škoda (Public API)“ → API klíč + VIN.
    Více aut = přidej integraci znovu s dalším VIN (limit se počítá na VIN).

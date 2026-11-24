@@ -9,7 +9,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
 
-from custom_components.skoda_public_api.const import DOMAIN, CONF_VIN
+from custom_components.skoda_ha.const import DOMAIN, CONF_VIN
 
 VIN = "TMBJB9NY5RF999999"
 URL = f"https://public.api.connect.skoda-auto.cz/api/v1/vehicles/{VIN}"

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+- **Breaking:** doména a složka přejmenovány `skoda_public_api` -> `skoda_ha`
+  (`custom_components/skoda_ha`). Pro HA je to nová integrace: původní záznam odeber,
+  smaž starou složku, restartuj a přidej znovu (API klíč + VIN). Entity ID se nemění
+  (odvozují se z názvu auta). Žádná funkční změna.
+
 ## 0.1.0
 První verze. Read-only, bez externích závislostí (jen `aiohttp` z HA).
 

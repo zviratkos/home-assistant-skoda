@@ -1,6 +1,6 @@
 """Constants for the Škoda (Public API) integration."""
 
-DOMAIN = "skoda_public_api"
+DOMAIN = "skoda_ha"
 
 API_BASE_URL = "https://public.api.connect.skoda-auto.cz/api/v1"
 
