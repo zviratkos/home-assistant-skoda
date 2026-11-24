@@ -1,0 +1,152 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Škoda (Public API)",
+        "description": "V aplikaci MyŠkoda vytvoř API klíč (https://go.skoda.eu/api-keys) a vyber toto vozidlo. API nemá seznam vozidel, proto zadej VIN ručně. Jeden záznam = jedno vozidlo.",
+        "data": {
+          "api_key": "API klíč",
+          "vin": "VIN"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Škoda (Public API)",
+        "description": "API klíč pro {vin} vypršel nebo byl odmítnut. Vytvoř nový klíč v aplikaci MyŠkoda.",
+        "data": {
+          "api_key": "API klíč"
+        }
+      },
+      "reconfigure": {
+        "title": "Škoda (Public API)",
+        "description": "Nahrazení API klíče pro {vin}.",
+        "data": {
+          "api_key": "API klíč"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "API klíč byl odmítnut nebo vypršel (nebo neplatí pro tento VIN).",
+      "vehicle_not_found": "Vozidlo s tímto VIN nebylo nalezeno.",
+      "invalid_vin": "VIN má 17 znaků (bez I, O, Q).",
+      "rate_limited": "Dosažen limit API, zkus to později.",
+      "cannot_connect": "Nelze se připojit k API Škody.",
+      "unknown": "Neočekávaná chyba, viz log."
+    },
+    "abort": {
+      "already_configured": "Toto vozidlo je již nastaveno.",
+      "reauth_successful": "API klíč aktualizován.",
+      "reconfigure_successful": "API klíč aktualizován."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Dotazování",
+        "data": {
+          "scan_interval": "Interval aktualizace (minuty)"
+        },
+        "data_description": {
+          "scan_interval": "API povoluje 20 požadavků za hodinu na vozidlo. 10 min = 6 požadavků/hod."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery_level": {
+        "name": "Stav baterie"
+      },
+      "electric_range": {
+        "name": "Dojezd na elektřinu"
+      },
+      "total_range": {
+        "name": "Celkový dojezd"
+      },
+      "fuel_level": {
+        "name": "Hladina paliva"
+      },
+      "fuel_range": {
+        "name": "Dojezd na palivo"
+      },
+      "adblue_range": {
+        "name": "Dojezd AdBlue"
+      },
+      "odometer": {
+        "name": "Najeto"
+      },
+      "charging_state": {
+        "name": "Stav nabíjení"
+      },
+      "charge_type": {
+        "name": "Typ nabíjení"
+      },
+      "charging_power": {
+        "name": "Nabíjecí výkon"
+      },
+      "charging_rate": {
+        "name": "Rychlost nabíjení"
+      },
+      "remaining_charging_time": {
+        "name": "Zbývající doba nabíjení"
+      },
+      "target_battery_level": {
+        "name": "Cílový stav baterie"
+      },
+      "air_conditioning_state": {
+        "name": "Stav klimatizace"
+      },
+      "air_conditioning_target_temperature": {
+        "name": "Cílová teplota klimatizace"
+      },
+      "air_conditioning_ready_at": {
+        "name": "Klimatizace připravena v"
+      },
+      "car_captured": {
+        "name": "Poslední data z vozu"
+      },
+      "api_requests_remaining": {
+        "name": "Zbývající API požadavky"
+      },
+      "api_key_expires_at": {
+        "name": "Platnost API klíče do"
+      }
+    },
+    "binary_sensor": {
+      "doors": {
+        "name": "Dveře"
+      },
+      "windows": {
+        "name": "Okna"
+      },
+      "lights": {
+        "name": "Světla"
+      },
+      "lock": {
+        "name": "Zámek"
+      },
+      "trunk": {
+        "name": "Kufr"
+      },
+      "bonnet": {
+        "name": "Kapota"
+      },
+      "sunroof": {
+        "name": "Střešní okno"
+      },
+      "charging": {
+        "name": "Nabíjení"
+      },
+      "plug": {
+        "name": "Nabíjecí kabel"
+      },
+      "air_conditioning": {
+        "name": "Klimatizace"
+      }
+    },
+    "device_tracker": {
+      "parking_position": {
+        "name": "Poloha zaparkování"
+      }
+    }
+  }
+}
