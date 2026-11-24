@@ -8,6 +8,8 @@ __pycache__/
 
 # Distribution / packaging
 skoda_public_api_v0.1.0.zip
+home-assistant-skoda_v0.1.1.zip
+home-assistant-skoda_v*.zip
 .Python
 build/
 develop-eggs/
