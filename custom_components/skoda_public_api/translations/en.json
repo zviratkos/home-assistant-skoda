@@ -1,0 +1,152 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Škoda (Public API)",
+        "description": "Create an API key in the MyŠkoda app (https://go.skoda.eu/api-keys) and select this vehicle. The API has no vehicle list, so enter the VIN manually. One entry = one vehicle.",
+        "data": {
+          "api_key": "API key",
+          "vin": "VIN"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Škoda (Public API)",
+        "description": "The API key for {vin} expired or was rejected. Create a new key in the MyŠkoda app.",
+        "data": {
+          "api_key": "API key"
+        }
+      },
+      "reconfigure": {
+        "title": "Škoda (Public API)",
+        "description": "Replace the API key for {vin}.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "API key rejected or expired (or not valid for this VIN).",
+      "vehicle_not_found": "Vehicle not found for this VIN.",
+      "invalid_vin": "A VIN has 17 characters (no I, O, Q).",
+      "rate_limited": "API rate limit reached, try again later.",
+      "cannot_connect": "Cannot connect to the Škoda API.",
+      "unknown": "Unexpected error, see the log."
+    },
+    "abort": {
+      "already_configured": "This vehicle is already configured.",
+      "reauth_successful": "API key updated.",
+      "reconfigure_successful": "API key updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Polling",
+        "data": {
+          "scan_interval": "Update interval (minutes)"
+        },
+        "data_description": {
+          "scan_interval": "The API allows 20 requests per hour per vehicle. 10 min = 6 requests/hour."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery_level": {
+        "name": "Battery level"
+      },
+      "electric_range": {
+        "name": "Electric range"
+      },
+      "total_range": {
+        "name": "Total range"
+      },
+      "fuel_level": {
+        "name": "Fuel level"
+      },
+      "fuel_range": {
+        "name": "Fuel range"
+      },
+      "adblue_range": {
+        "name": "AdBlue range"
+      },
+      "odometer": {
+        "name": "Odometer"
+      },
+      "charging_state": {
+        "name": "Charging state"
+      },
+      "charge_type": {
+        "name": "Charge type"
+      },
+      "charging_power": {
+        "name": "Charging power"
+      },
+      "charging_rate": {
+        "name": "Charging rate"
+      },
+      "remaining_charging_time": {
+        "name": "Remaining charging time"
+      },
+      "target_battery_level": {
+        "name": "Target battery level"
+      },
+      "air_conditioning_state": {
+        "name": "Air conditioning state"
+      },
+      "air_conditioning_target_temperature": {
+        "name": "Air conditioning target temperature"
+      },
+      "air_conditioning_ready_at": {
+        "name": "Air conditioning ready at"
+      },
+      "car_captured": {
+        "name": "Last update from car"
+      },
+      "api_requests_remaining": {
+        "name": "API requests remaining"
+      },
+      "api_key_expires_at": {
+        "name": "API key expires"
+      }
+    },
+    "binary_sensor": {
+      "doors": {
+        "name": "Doors"
+      },
+      "windows": {
+        "name": "Windows"
+      },
+      "lights": {
+        "name": "Lights"
+      },
+      "lock": {
+        "name": "Lock"
+      },
+      "trunk": {
+        "name": "Trunk"
+      },
+      "bonnet": {
+        "name": "Bonnet"
+      },
+      "sunroof": {
+        "name": "Sunroof"
+      },
+      "charging": {
+        "name": "Charging"
+      },
+      "plug": {
+        "name": "Charging cable"
+      },
+      "air_conditioning": {
+        "name": "Air conditioning"
+      }
+    },
+    "device_tracker": {
+      "parking_position": {
+        "name": "Parking position"
+      }
+    }
+  }
+}
