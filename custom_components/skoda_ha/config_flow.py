@@ -30,6 +30,7 @@ from .api import (
     SkodaNotFoundError,
     SkodaPublicApi,
     SkodaRateLimitError,
+    SkodaUnavailableError,
 )
 from .const import (
     CONF_SCAN_INTERVAL,
@@ -49,25 +50,32 @@ KEY_SELECTOR = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
 class SkodaConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
-    async def _validate(self, api_key: str, vin: str) -> tuple[SkodaData | None, str | None]:
-        """Do one real request; returns (data, error_key)."""
+    async def _validate(self, api_key: str, vin: str) -> tuple[SkodaData | None, str | None, str]:
+        """Do one real request; returns (data, error_key, detail)."""
         api = SkodaPublicApi(async_get_clientsession(self.hass), api_key, vin)
         try:
-            return await api.async_get_vehicle(), None
-        except SkodaAuthError:
-            return None, "invalid_auth"
-        except SkodaNotFoundError:
-            return None, "vehicle_not_found"
-        except SkodaRateLimitError:
-            return None, "rate_limited"
-        except SkodaConnectionError:
-            return None, "cannot_connect"
-        except SkodaApiError:
-            _LOGGER.exception("Unexpected API error during validation")
-            return None, "unknown"
+            return await api.async_get_vehicle(), None, ""
+        except SkodaAuthError as err:
+            return None, "invalid_auth", str(err)
+        except SkodaNotFoundError as err:
+            return None, "vehicle_not_found", str(err)
+        except SkodaRateLimitError as err:
+            return None, "rate_limited", str(err)
+        except SkodaUnavailableError as err:
+            # 503 means key + VIN were accepted, the car just did not answer right now.
+            # Create the entry anyway; setup retries automatically until data arrives.
+            _LOGGER.warning("Škoda API temporarily unavailable during validation: %s", err)
+            return None, None, str(err)
+        except SkodaConnectionError as err:
+            _LOGGER.warning("Škoda API validation failed (connection): %s", err)
+            return None, "cannot_connect", str(err)
+        except SkodaApiError as err:
+            _LOGGER.warning("Škoda API validation failed (unexpected): %s", err)
+            return None, "unknown", str(err)
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
+        detail = ""
         if user_input is not None:
             vin = user_input[CONF_VIN].strip().upper()
             key = user_input[CONF_API_KEY].strip()
@@ -76,7 +84,7 @@ class SkodaConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 await self.async_set_unique_id(vin)
                 self._abort_if_unique_id_configured()
-                data, error = await self._validate(key, vin)
+                data, error, detail = await self._validate(key, vin)
                 if error:
                     errors["base"] = error
                 else:
@@ -91,6 +99,7 @@ class SkodaConfigFlow(ConfigFlow, domain=DOMAIN):
                 {vol.Required(CONF_API_KEY): KEY_SELECTOR, vol.Required(CONF_VIN): str}
             ),
             errors=errors,
+            description_placeholders={"detail": detail},
         )
 
     # --- replace an expired / soon-to-expire key ---
@@ -105,9 +114,10 @@ class SkodaConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def _new_key(self, step_id: str, entry, done_reason: str, user_input) -> ConfigFlowResult:
         errors: dict[str, str] = {}
+        detail = ""
         if user_input is not None:
             key = user_input[CONF_API_KEY].strip()
-            _, error = await self._validate(key, entry.data[CONF_VIN])
+            _, error, detail = await self._validate(key, entry.data[CONF_VIN])
             if error:
                 errors["base"] = error
             else:
@@ -117,7 +127,7 @@ class SkodaConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id=step_id,
             data_schema=vol.Schema({vol.Required(CONF_API_KEY): KEY_SELECTOR}),
-            description_placeholders={"vin": entry.data[CONF_VIN]},
+            description_placeholders={"vin": entry.data[CONF_VIN], "detail": detail},
             errors=errors,
         )
 

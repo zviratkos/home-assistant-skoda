@@ -29,8 +29,8 @@
       "vehicle_not_found": "Vehicle not found for this VIN.",
       "invalid_vin": "A VIN has 17 characters (no I, O, Q).",
       "rate_limited": "API rate limit reached, try again later.",
-      "cannot_connect": "Cannot connect to the Škoda API.",
-      "unknown": "Unexpected error, see the log."
+      "cannot_connect": "Cannot connect to the Škoda API: {detail}",
+      "unknown": "Unexpected error, see the log: {detail}"
     },
     "abort": {
       "already_configured": "This vehicle is already configured.",
@@ -109,6 +109,9 @@
       },
       "api_key_expires_at": {
         "name": "API key expires"
+      },
+      "active_ventilation_state": {
+        "name": "Active ventilation"
       }
     },
     "binary_sensor": {

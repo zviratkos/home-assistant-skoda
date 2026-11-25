@@ -16,6 +16,7 @@ from .api import (
     SkodaData,
     SkodaPublicApi,
     SkodaRateLimitError,
+    SkodaUnavailableError,
 )
 from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
 
@@ -52,6 +53,12 @@ class SkodaCoordinator(DataUpdateCoordinator[SkodaData]):
             if self.data is not None:
                 return self.data  # keep last known state instead of going unavailable
             raise UpdateFailed(f"Rate limited: {err}") from err
+        except SkodaUnavailableError as err:
+            # Temporary backend/vehicle outage: keep last state, try again next poll.
+            _LOGGER.warning("Škoda API temporarily unavailable: %s", err)
+            if self.data is not None:
+                return self.data
+            raise UpdateFailed(str(err)) from err
         except SkodaApiError as err:
             raise UpdateFailed(str(err)) from err
 

@@ -185,3 +185,109 @@ async def test_options_interval(hass, aioclient_mock):
     await hass.async_block_till_done()
     assert e.options["scan_interval"] == 30
     assert e.runtime_data.update_interval == timedelta(minutes=30)
+
+
+async def test_config_flow_shows_reason(hass, aioclient_mock):
+    aioclient_mock.get(URL, status=302, headers={"Location": "https://example.invalid/x"})
+    r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    r = await hass.config_entries.flow.async_configure(r["flow_id"], {CONF_API_KEY: "k", CONF_VIN: VIN})
+    assert r["errors"] == {"base": "cannot_connect"}
+    assert "HTTP 302 -> https://example.invalid/x" in r["description_placeholders"]["detail"]
+
+
+from unittest.mock import AsyncMock, patch
+from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMockResponse
+
+B503 = {"detail": "Vehicle data is temporarily unavailable. Retry after 10 seconds.", "status": 503,
+        "title": "Service Unavailable", "type": "about:blank"}
+
+
+async def test_503_is_retried_then_succeeds(hass, aioclient_mock):
+    calls = []
+
+    async def side(method, url, data):
+        calls.append(1)
+        if len(calls) < 3:
+            return AiohttpClientMockResponse(method, url, status=503, json=B503)
+        return AiohttpClientMockResponse(method, url, json=BEV, headers=HDR)
+
+    aioclient_mock.get(URL, side_effect=side)
+    sleep = AsyncMock()
+    with patch("custom_components.skoda_ha.api.asyncio.sleep", sleep):
+        e = entry(hass)
+        await hass.config_entries.async_setup(e.entry_id)
+        await hass.async_block_till_done()
+    assert e.state is ConfigEntryState.LOADED and len(calls) == 3
+    assert [c.args[0] for c in sleep.call_args_list if c.args[0]] == [10, 10]
+
+
+async def test_config_flow_creates_entry_when_503(hass, aioclient_mock):
+    aioclient_mock.get(URL, status=503, json=B503)
+    with patch("custom_components.skoda_ha.api.asyncio.sleep", AsyncMock()):
+        r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+        r = await hass.config_entries.flow.async_configure(r["flow_id"], {CONF_API_KEY: "k", CONF_VIN: VIN})
+        await hass.async_block_till_done()
+    assert r["type"] is FlowResultType.CREATE_ENTRY and r["data"][CONF_VIN] == VIN
+    e = hass.config_entries.async_entries(DOMAIN)[0]
+    assert e.state is ConfigEntryState.SETUP_RETRY  # HA keeps retrying
+
+
+async def test_503_after_success_keeps_data(hass, aioclient_mock):
+    aioclient_mock.get(URL, json=BEV, headers=HDR)
+    e = entry(hass)
+    await hass.config_entries.async_setup(e.entry_id)
+    await hass.async_block_till_done()
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(URL, status=503, json=B503)
+    with patch("custom_components.skoda_ha.api.asyncio.sleep", AsyncMock()):
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=11))
+        await hass.async_block_till_done()
+    assert state(hass, "sensor", "battery_level").state == "63"
+
+
+# Anonymised copy of a real diesel Octavia response (fake VIN/plate/address/GPS).
+REAL_VIN = "TMBXX8NX0RY000000"
+REAL = {"vehicle": {
+    "activeVentilation": {"state": "OFF", "carCapturedTimestamp": "2026-11-24T17:01:04Z", "durationInSeconds": 600},
+    "fuelStatus": {"adBlueRange": 13500, "carCapturedTimestamp": "2026-11-24T17:02:00Z", "carType": "DIESEL",
+                   "primaryEngineRange": {"currentFuelLevelInPercent": 37, "currentSoCInPercent": 37,
+                                          "engineType": "DIESEL", "remainingRangeInKm": 250},
+                   "totalRangeInKm": 250},
+    "licensePlate": "1AB 0000", "name": "Octavia",
+    "odometer": {"mileageInKm": 62952, "carCapturedTimestamp": "2026-11-24T17:02:00Z"},
+    "operations": [{"name": "startActiveVentilation"}, {"name": "stopActiveVentilation"}],
+    "parkingPosition": {"state": "PARKED", "formattedAddress": "Testova 1, Praha",
+                        "gpsCoordinates": {"latitude": 50.0, "longitude": 14.5}},
+    "renderUrl": "https://example.invalid/x.png",
+    "status": {"overall": {"doorsLocked": "YES", "locked": "YES", "doors": "CLOSED", "windows": "UNKNOWN",
+                           "lights": "OFF", "reliableLockStatus": "LOCKED"},
+               "detail": {"sunroof": "UNSUPPORTED", "trunk": "CLOSED", "bonnet": "CLOSED"},
+               "carCapturedTimestamp": "2026-11-24T17:02:00Z"},
+    "vin": REAL_VIN}}
+
+
+async def test_real_diesel_response(hass, aioclient_mock):
+    url = f"https://public.api.connect.skoda-auto.cz/api/v1/vehicles/{REAL_VIN}"
+    aioclient_mock.get(url, json=REAL)  # note: no "errors" key, no ratelimit headers
+    e = MockConfigEntry(domain=DOMAIN, unique_id=REAL_VIN, data={CONF_API_KEY: "k", CONF_VIN: REAL_VIN})
+    e.add_to_hass(hass)
+    await hass.config_entries.async_setup(e.entry_id)
+    await hass.async_block_till_done()
+    assert e.state is ConfigEntryState.LOADED
+    reg = er.async_get(hass)
+
+    def st(p, k):
+        eid = reg.async_get_entity_id(p, DOMAIN, f"{REAL_VIN}_{k}")
+        return hass.states.get(eid) if eid else None
+
+    for k, v in {"fuel_level": "37", "fuel_range": "250", "total_range": "250", "adblue_range": "13500",
+                 "odometer": "62952", "active_ventilation_state": "off"}.items():
+        assert st("sensor", k).state == v, k
+    assert st("sensor", "car_captured").state.startswith("2026-11-24T17:02")
+    for k in ("doors", "lock", "lights", "trunk", "bonnet"):
+        assert st("binary_sensor", k).state == "off", k
+    for k in ("windows", "sunroof"):  # UNKNOWN / UNSUPPORTED -> no entity
+        assert st("binary_sensor", k) is None, k
+    assert st("sensor", "battery_level") is None  # diesel: bogus currentSoCInPercent ignored
+    assert st("sensor", "api_requests_remaining") is None  # no header -> no entity
+    assert st("device_tracker", "parking_position").attributes["latitude"] == 50.0
