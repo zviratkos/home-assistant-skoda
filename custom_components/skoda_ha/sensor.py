@@ -77,7 +77,7 @@ def _target_temp(d: SkodaData) -> float | None:
 def _last_update(d: SkodaData) -> datetime | None:
     stamps = [
         parse_ts(dig(d.vehicle, part, "carCapturedTimestamp"))
-        for part in ("status", "odometer", "fuelStatus", "charging", "airConditioning")
+        for part in ("status", "odometer", "fuelStatus", "charging", "airConditioning", "activeVentilation")
     ]
     stamps = [s for s in stamps if s]
     return max(stamps) if stamps else None
@@ -168,6 +168,10 @@ SENSORS: tuple[SkodaSensorDescription, ...] = (
             dig(d.vehicle, "airConditioning", "estimatedReachOfTargetTemperatureAt")
         ),
         device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+    SkodaSensorDescription(
+        key="active_ventilation_state",
+        value_fn=lambda d: lower(dig(d.vehicle, "activeVentilation", "state")),
     ),
     SkodaSensorDescription(
         key="car_captured",

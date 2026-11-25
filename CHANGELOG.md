@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.1.4
+- Ověřeno na skutečné odpovědi API (Octavia diesel): palivo, dojezd, AdBlue, najeto, dveře, zámek, kapota,
+  kufr, světla i poloha se mapují správně. Pole `windows: UNKNOWN` a `sunroof: UNSUPPORTED` entitu nevytvoří.
+- Nový senzor „Aktivní větrání“ (`activeVentilation.state`), který API vrací.
+- `currentSoCInPercent` u dieselového motoru (API ho vrací shodné s palivem) se správně ignoruje, baterie se nevytvoří.
+- Test s anonymizovanou kopií reálné odpovědi.
+
+## 0.1.3
+- **Oprava:** API často odpovídá `503 Vehicle data is temporarily unavailable. Retry after 10 seconds`.
+  Dřív to skončilo jako „Cannot connect“. Teď se 502/503/504 zopakuje (max. 2x, čeká se `Retry-After`,
+  nejvýše 30 s; 5xx se počítá do limitu 20/h, proto tak málo).
+- Config flow: pokud i po opakování zůstane 503, záznam se přesto vytvoří (klíč a VIN API přijalo,
+  jinak by vrátilo 401/403/404) a HA to načítá znovu automaticky.
+- Za běhu při 503 zůstanou poslední známé hodnoty místo „nedostupné“.
+
+## 0.1.2
+- Config flow už u „Cannot connect“ / „Unknown error“ zobrazí konkrétní důvod (HTTP stav, přesměrování,
+  timeout, chyba TLS) a zapíše ho do logu jako warning. Dřív se příčina ztrácela.
+- Neplatná JSON odpověď už nevyvolá nezachycenou výjimku.
+
 ## 0.1.1
 - **Breaking:** doména a složka přejmenovány `skoda_public_api` -> `skoda_ha`
   (`custom_components/skoda_ha`). Pro HA je to nová integrace: původní záznam odeber,

@@ -29,8 +29,8 @@
       "vehicle_not_found": "Vozidlo s tímto VIN nebylo nalezeno.",
       "invalid_vin": "VIN má 17 znaků (bez I, O, Q).",
       "rate_limited": "Dosažen limit API, zkus to později.",
-      "cannot_connect": "Nelze se připojit k API Škody.",
-      "unknown": "Neočekávaná chyba, viz log."
+      "cannot_connect": "Nelze se připojit k API Škody: {detail}",
+      "unknown": "Neočekávaná chyba, viz log: {detail}"
     },
     "abort": {
       "already_configured": "Toto vozidlo je již nastaveno.",
@@ -109,6 +109,9 @@
       },
       "api_key_expires_at": {
         "name": "Platnost API klíče do"
+      },
+      "active_ventilation_state": {
+        "name": "Aktivní větrání"
       }
     },
     "binary_sensor": {
