@@ -1,7 +1,9 @@
 {
   "domain": "skoda_ha",
-  "name": "Škoda (Public API)",
-  "codeowners": [],
+  "name": "Skoda over Public API",
+  "codeowners": [
+   "@zviratkos"
+  ],
   "config_flow": true,
   "documentation": "https://public.api.connect.skoda-auto.cz/docs",
   "integration_type": "device",
